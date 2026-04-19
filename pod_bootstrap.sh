@@ -337,6 +337,18 @@ echo "  claude: $(command -v claude || echo "$NPM_PREFIX/bin/claude")"
 echo
 echo "Next steps (manual):"
 echo "  claude                                         # first time: run /login"
+# gh token lives on /workspace so it persists; warn loudly if it's missing
+# (fresh volume, accidentally deleted). Token can't be auto-fetched — PATs
+# only come from a logged-in browser session on github.com.
+GH_TOKEN_FILE=/workspace/.gh_token
+if [ ! -s "$GH_TOKEN_FILE" ]; then
+    echo "  [!] gh token missing at $GH_TOKEN_FILE — gh CLI will be unauthenticated."
+    echo "      Fetch one from the web:"
+    echo "        https://github.com/settings/tokens/new?scopes=repo,workflow,read:org&description=pod"
+    echo "      Then save it:"
+    echo "        echo -n '<paste-token>' > $GH_TOKEN_FILE && chmod 600 $GH_TOKEN_FILE"
+    echo "      New shells will auto-export it as \$GH_TOKEN."
+fi
 echo
 log "launching zsh as sandy…"
 exec zsh -l
