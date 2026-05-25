@@ -342,6 +342,19 @@ common_install_claude_code() {
         npm install -g --silent @anthropic-ai/claude-code
     fi
     mkdir -p /workspace/.claude
+    # Default settings.json: enable auto mode so sandy isn't prompt-spammed on
+    # a fresh pod. Only writes when missing — never clobbers existing config.
+    if [ ! -s /workspace/.claude/settings.json ]; then
+        cat > /workspace/.claude/settings.json <<'JSON'
+{
+  "theme": "auto",
+  "autoUpdatesChannel": "stable",
+  "permissions": {
+    "defaultMode": "auto"
+  }
+}
+JSON
+    fi
     [ -e /workspace/.claude.json ] || echo '{}' > /workspace/.claude.json
     if [ ! -L ~/.claude ]; then
         [ -e ~/.claude ] && rm -rf ~/.claude
