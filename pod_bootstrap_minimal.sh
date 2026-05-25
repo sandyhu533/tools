@@ -10,7 +10,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck disable=SC1091
 source "$HERE/pod_bootstrap_common.sh"
 
-common_root_phase "$0"   # no-op when already sandy; else execs back here
+common_root_phase "$HERE/$(basename "${BASH_SOURCE[0]}")"   # no-op when already sandy; else execs back here
 common_sandy_base
 common_write_active_env "none"
 common_install_claude_code
@@ -26,5 +26,10 @@ if [ ! -s "$GH_TOKEN_FILE" ]; then
     echo "      Save:      echo -n '<token>' > $GH_TOKEN_FILE && chmod 600 $GH_TOKEN_FILE"
 fi
 
-log "launching zsh as sandy…"
-exec zsh -l
+if [ -t 0 ] && [ -t 1 ]; then
+    log "launching zsh as sandy…"
+    exec zsh -l
+else
+    log "non-interactive shell detected; not exec'ing zsh."
+    log "to enter sandy manually: sudo -iu sandy"
+fi

@@ -24,6 +24,11 @@ NPM_PREFIX="$WORKSPACE/.npm-global"
 ACTIVE_ENV_FILE="$WORKSPACE/.active_env"
 SGLANG_VENV="$WORKSPACE/venv-sglang"
 VLLM_VENV="$WORKSPACE/venv-vllm"
+# assignment2-systems is a uv-native project (has uv.lock); `uv sync` creates
+# its venv inside the repo, so the path follows the repo layout rather than
+# the /workspace/venv-* convention used by sglang/vllm.
+ASSIGNMENT2_REPO="$WORKSPACE/assignment2-systems"
+ASSIGNMENT2_VENV="$ASSIGNMENT2_REPO/.venv"
 MARKER="# === cloudgpu bootstrap ==="
 
 log() { echo -e "\033[1;34m[bootstrap]\033[0m $*"; }
@@ -49,7 +54,7 @@ common_root_phase() {
     # otherwise (falls back to a less-capable variant).
     ldconfig -p 2>/dev/null | grep -q 'libnuma\.so\.1' || NEED_NUMA=1
     local NEED_PYDEV=0
-    [ -f /usr/include/python3.*/Python.h ] 2>/dev/null \
+    compgen -G '/usr/include/python3.*/Python.h' >/dev/null 2>&1 \
         || dpkg -s python3-dev >/dev/null 2>&1 \
         || NEED_PYDEV=1
     if [ "${#MISSING[@]}" -gt 0 ] || [ "$NEED_NUMA" = "1" ] || [ "$NEED_PYDEV" = "1" ]; then
@@ -205,8 +210,9 @@ cd /workspace 2>/dev/null || true
 # land in the matching venv.
 _boot_env="${BOOT_ENV:-$(cat /workspace/.active_env 2>/dev/null || echo sglang)}"
 case "$_boot_env" in
-    vllm)  _active_venv=/workspace/venv-vllm ;;
-    *)     _active_venv=/workspace/venv-sglang ;;
+    vllm)         _active_venv=/workspace/venv-vllm ;;
+    assignment2)  _active_venv=/workspace/assignment2-systems/.venv ;;
+    *)            _active_venv=/workspace/venv-sglang ;;
 esac
 if [ -f "$_active_venv/bin/activate" ]; then
     # shellcheck disable=SC1091
@@ -215,6 +221,7 @@ fi
 unset _boot_env _active_venv
 alias activate-sglang='source /workspace/venv-sglang/bin/activate'
 alias activate-vllm='source /workspace/venv-vllm/bin/activate'
+alias activate-assignment2='source /workspace/assignment2-systems/.venv/bin/activate'
 EOF
 
     log "oh-my-zsh + plugins"
@@ -357,10 +364,11 @@ common_final_summary() {
     # Import check from /tmp: /workspace contains a `vllm/` subdir (git repo)
     # which PEP 420 picks up as a namespace package shadowing site-packages.
     case "$fw" in
-        sglang) echo "  sanity:    $(cd /tmp && "$venv/bin/python" -c 'import sglang; print("(sglang ok)")' 2>/dev/null || echo '(sglang import FAILED)')" ;;
-        vllm)   echo "  sanity:    $(cd /tmp && "$venv/bin/python" -c 'import vllm, vllm.envs; print("(vllm ok)")' 2>/dev/null || echo '(vllm import FAILED)')" ;;
+        sglang)      echo "  sanity:    $(cd /tmp && "$venv/bin/python" -c 'import sglang; print("(sglang ok)")' 2>/dev/null || echo '(sglang import FAILED)')" ;;
+        vllm)        echo "  sanity:    $(cd /tmp && "$venv/bin/python" -c 'import vllm, vllm.envs; print("(vllm ok)")' 2>/dev/null || echo '(vllm import FAILED)')" ;;
+        assignment2) echo "  sanity:    $(cd /tmp && "$venv/bin/python" -c 'import torch, cs336_systems; print("(assignment2 ok)")' 2>/dev/null || echo '(assignment2 import FAILED)')" ;;
     esac
-    echo "  switch:    activate-sglang | activate-vllm   (in a new shell)"
+    echo "  switch:    activate-sglang | activate-vllm | activate-assignment2   (in a new shell)"
     echo "  claude:    $(command -v claude || echo "$NPM_PREFIX/bin/claude")"
     local GH_TOKEN_FILE=/workspace/.gh_token
     if [ ! -s "$GH_TOKEN_FILE" ]; then
