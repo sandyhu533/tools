@@ -179,6 +179,10 @@ common_sandy_base() {
     git config --global user.name "sandyhu533"
     git config --global user.email "533.sandyhu@gmail.com"
 
+    # Route `git push` over https through gh's credential helper so it picks up
+    # $GH_TOKEN (set by shellrc) instead of prompting for a password.
+    command -v gh >/dev/null 2>&1 && gh auth setup-git 2>/dev/null || true
+
     # Runtime-required build tooling check (ninja is invoked by sglang's tvm_ffi
     # and flashinfer JIT at runtime). The root-phase apt only fires when
     # bootstrap starts as root; reruns as sandy would skip it otherwise.
