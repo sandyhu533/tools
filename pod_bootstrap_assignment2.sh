@@ -15,7 +15,7 @@ source "$HERE/pod_bootstrap_common.sh"
 
 FRAMEWORK="assignment2"
 REPO_URL="https://github.com/sandyhu533/assignment2-systems.git"
-DEV_BRANCH="${DEV_BRANCH:-practive/v1}"
+DEV_BRANCH="${DEV_BRANCH:-practice/v1}"
 REPO_DIR="$ASSIGNMENT2_REPO"
 VENV_DIR="$ASSIGNMENT2_VENV"
 
