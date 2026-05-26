@@ -70,6 +70,20 @@ common_root_phase() {
         apt-get install -y -qq nodejs
     fi
 
+    # Nsight Systems profiler. Pulls latest versioned package from the CUDA repo
+    # (cuda-ubuntu2204-x86_64.list, pre-populated on RunPod images). The package
+    # wires /usr/local/bin/nsys via update-alternatives, so no PATH munging.
+    if ! command -v nsys >/dev/null 2>&1; then
+        local NSYS_PKG
+        NSYS_PKG=$(apt-cache search '^nsight-systems-[0-9]' 2>/dev/null \
+            | awk '{print $1}' | sort -V | tail -1)
+        if [ -n "$NSYS_PKG" ]; then
+            apt-get install -y -qq "$NSYS_PKG"
+        else
+            log "     no nsight-systems package found in apt; skipping nsys install"
+        fi
+    fi
+
     # GitHub CLI. Auth via $GH_TOKEN picked up from /workspace/.gh_token in shellrc.
     if ! command -v gh >/dev/null 2>&1; then
         local GH_KEYRING=/usr/share/keyrings/githubcli-archive-keyring.gpg
