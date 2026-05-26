@@ -174,6 +174,11 @@ common_sandy_base() {
     git config --global --get-all safe.directory 2>/dev/null | grep -qxF '*' \
         || git config --global --add safe.directory '*'
 
+    # Git identity — needed for commits via `gh` / `git`. Public values; the
+    # auth token stays in /workspace/.gh_token (gitignored, sourced by shellrc).
+    git config --global user.name "sandyhu533"
+    git config --global user.email "533.sandyhu@gmail.com"
+
     # Runtime-required build tooling check (ninja is invoked by sglang's tvm_ffi
     # and flashinfer JIT at runtime). The root-phase apt only fires when
     # bootstrap starts as root; reruns as sandy would skip it otherwise.
